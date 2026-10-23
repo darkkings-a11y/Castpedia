@@ -30,10 +30,14 @@ jobs:
         java-version: '17'
         distribution: 'temurin'
 
-    - name: Install Gradle and Generate Wrapper
+    - name: Install Modern Gradle (8.5)
       run: |
-        sudo apt-get update && sudo apt-get install -y gradle
-        gradle wrapper
+        wget https://services.gradle.org/distributions/gradle-8.5-bin.zip
+        unzip -q gradle-8.5-bin.zip
+        ./gradle-8.5/bin/gradle wrapper --gradle-version 8.5
+
+    - name: Setup Gradle
+      uses: gradle/actions/setup-gradle@v3
 
     - name: Build APK with Gradle
       run: ./gradlew assembleDebug
@@ -43,3 +47,4 @@ jobs:
       with:
         name: Castpedia-APK
         path: app/build/outputs/apk/debug/app-debug.apk
+        
