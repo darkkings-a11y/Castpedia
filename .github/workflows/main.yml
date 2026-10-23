@@ -1,4 +1,4 @@
-Name: Build Android APK
+name: Build Android APK
 
 on:
   push:
@@ -34,4 +34,3 @@ jobs:
       with:
         name: Castpedia-APK
         path: app/build/outputs/apk/debug/app-debug.apk
-        
