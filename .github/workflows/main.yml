@@ -50,22 +50,10 @@ jobs:
     - name: Setup Gradle
       uses: gradle/actions/setup-gradle@v4
 
-    - name: Build APK with Gradle (Capture des logs)
-      run: |
-        ./gradlew assembleDebug --stacktrace > gradle_output.log 2>&1 || {
-          echo "=== LE BUILD A ÉCHOUÉ ==="
-          cat gradle_output.log | tail -n 100
-          exit 1
-        }
+    - name: Build APK with Gradle
+      run: ./gradlew assembleDebug --stacktrace
 
-    - name: Upload Build Error Logs (si échec)
-      if: failure()
-      uses: actions/upload-artifact@v4
-      with:
-        name: gradle-error-logs
-        path: gradle_output.log
-
-    - name: Upload APK Artifact (si succès)
+    - name: Upload APK Artifact
       uses: actions/upload-artifact@v4
       with:
         name: Castpedia-APK
