@@ -16,12 +16,23 @@ jobs:
 
     - name: Unzip and organize project files
       run: |
+        echo "=== VÉRIFICATION DU ZIP ==="
+        if [ -f "Castpedia.zip" ]; then
+          echo "Le fichier Castpedia.zip est bien présent."
+        else
+          echo "ERREUR : Le fichier Castpedia.zip est introuvable à la racine !"
+          exit 1
+        fi
         unzip -o Castpedia.zip -d extracted
         APP_DIR=$(find extracted -name app -type d | head -n 1)
         if [ -n "$APP_DIR" ]; then
           PROJECT_DIR=$(dirname "$APP_DIR")
           cp -r "$PROJECT_DIR"/* .
           cp -r "$PROJECT_DIR"/.[!.]* . 2>/dev/null || true
+          echo "Fichiers du ZIP extraits avec succès."
+        else
+          echo "ERREUR : Impossible de trouver le dossier 'app' dans le ZIP."
+          exit 1
         fi
 
     - name: Set up JDK 17
@@ -40,7 +51,7 @@ jobs:
       uses: gradle/actions/setup-gradle@v4
 
     - name: Build APK with Gradle
-      run: ./gradlew assembleDebug
+      run: ./gradlew assembleDebug --stacktrace
 
     - name: Upload APK Artifact
       uses: actions/upload-artifact@v4
