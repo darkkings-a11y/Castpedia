@@ -22,12 +22,25 @@ jobs:
         java-version: '17'
         distribution: 'temurin'
 
+    - name: Locate Gradle project
+      run: |
+        echo "Fichiers du depot :"
+        find . -maxdepth 3 -not -path './.git/*' | head -60
+        FILE=$(find . -name settings.gradle.kts -not -path './.git/*' | head -n 1)
+        if [ -z "$FILE" ]; then
+          echo "settings.gradle.kts introuvable dans le depot"
+          exit 1
+        fi
+        DIR=$(dirname "$FILE")
+        echo "Projet Gradle trouve dans : $DIR"
+        echo "PROJECT_DIR=$DIR" >> "$GITHUB_ENV"
+
     - name: Download sherpa-onnx AAR
       run: |
-        mkdir -p app/libs
-        curl -L --fail -o app/libs/sherpa-onnx-static-link-onnxruntime-1.12.40.aar \
+        mkdir -p "$PROJECT_DIR/app/libs"
+        curl -L --fail -o "$PROJECT_DIR/app/libs/sherpa-onnx-static-link-onnxruntime-1.12.40.aar" \
           https://github.com/k2-fsa/sherpa-onnx/releases/download/v1.12.40/sherpa-onnx-static-link-onnxruntime-1.12.40.aar
-        ls -l app/libs
+        ls -l "$PROJECT_DIR/app/libs"
 
     - name: Setup Gradle
       uses: gradle/actions/setup-gradle@v3
@@ -35,10 +48,12 @@ jobs:
         gradle-version: '8.5'
 
     - name: Build APK with Gradle
-      run: gradle assembleDebug --no-daemon
+      run: |
+        cd "$PROJECT_DIR"
+        gradle assembleDebug --no-daemon
 
     - name: Upload APK Artifact
       uses: actions/upload-artifact@v4
       with:
         name: Castpedia-APK
-        path: app/build/outputs/apk/debug/app-debug.apk
+        path: ${{ env.PROJECT_DIR }}/app/build/outputs/apk/debug/app-debug.apk
