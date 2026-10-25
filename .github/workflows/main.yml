@@ -5,53 +5,35 @@ on:
     branches: [ "main", "master" ]
   pull_request:
     branches: [ "main", "master" ]
+  workflow_dispatch:
 
 jobs:
   build:
+
     runs-on: ubuntu-latest
 
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
 
-    - name: Unzip and organize project files
-      run: |
-        echo "=== VÉRIFICATION DU ZIP ==="
-        if [ -f "Castpedia.zip" ]; then
-          echo "Le fichier Castpedia.zip est bien présent."
-        else
-          echo "ERREUR : Le fichier Castpedia.zip est introuvable à la racine !"
-          exit 1
-        fi
-        unzip -o Castpedia.zip -d extracted
-        APP_DIR=$(find extracted -name app -type d | head -n 1)
-        if [ -n "$APP_DIR" ]; then
-          PROJECT_DIR=$(dirname "$APP_DIR")
-          cp -r "$PROJECT_DIR"/* .
-          cp -r "$PROJECT_DIR"/.[!.]* . 2>/dev/null || true
-          echo "Fichiers du ZIP extraits avec succès."
-        else
-          echo "ERREUR : Impossible de trouver le dossier 'app' dans le ZIP."
-          exit 1
-        fi
-
     - name: Set up JDK 17
-      uses: actions/setup-java@v5
+      uses: actions/setup-java@v4
       with:
         java-version: '17'
         distribution: 'temurin'
 
-    - name: Install Modern Gradle (8.5)
+    - name: Download sherpa-onnx AAR
       run: |
-        wget https://services.gradle.org/distributions/gradle-8.5-bin.zip
-        unzip -q gradle-8.5-bin.zip
-        ./gradle-8.5/bin/gradle wrapper --gradle-version 8.5
+        mkdir -p app/libs
+        curl -L --fail -o app/libs/sherpa-onnx-static-link-onnxruntime-1.12.40.aar \
+          https://github.com/k2-fsa/sherpa-onnx/releases/download/v1.12.40/sherpa-onnx-static-link-onnxruntime-1.12.40.aar
+        ls -l app/libs
 
     - name: Setup Gradle
-      uses: gradle/actions/setup-gradle@v4
+      uses: gradle/actions/setup-gradle@v3
 
     - name: Build APK with Gradle
-      run: ./gradlew assembleDebug --stacktrace
+      run: ./gradlew assembleDebug
 
     - name: Upload APK Artifact
       uses: actions/upload-artifact@v4
